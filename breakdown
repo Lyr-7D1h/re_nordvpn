@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+# Enable IPV6
+rm /etc/sysctl.d/40-ipv6.conf
+
+systemctl restart systemd.sysctl.service
+
+rm -r /etc/openvpn/ovpn_udp
+rm -r /etc/openvpn/ovpn_tcp
+
+rm /etc/ssl/private/nordvpn.conf

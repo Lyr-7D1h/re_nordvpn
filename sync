@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+echo "Sync: Starting.."
+
+cd /etc/openvpn
+
+sudo su << EOF
+wget https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip
+
+unzip -oq ovpn.zip
+
+rm ovpn.zip
+EOF
+
+AUTO_COMPLETE="complete -W \"\$(ls /etc/openvpn/ovpn_tcp) | tr '\n' ' '; echo -e '\b'\" connect"
+if ! grep -F "$AUTO_COMPLETE" ~/.zshrc > /dev/null
+then
+  echo "Sync: Adding autocomplete to zshrc"
+  echo "
+$AUTO_COMPLETE" >> ~/.zshrc
+fi
+
+echo "Sync: finished"

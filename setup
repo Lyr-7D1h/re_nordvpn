@@ -1,0 +1,74 @@
+#!/bin/sh
+
+set -e
+
+USERNAME=$1
+PASSWORD=$2
+
+CWD=$PWD
+
+echo "Setup: validating.."
+if [[ $USERNAME == "" || $PASSWORD == "" ]]
+then
+  echo "No service username or password given"
+  echo "https://my.nordaccount.com/dashboard/nordvpn/"
+  echo "./setup {username} {password}"
+  exit 1
+fi
+
+if [[ $(id -u) == 0 ]]
+then
+  echo "Please run me as user"
+  exit 1
+fi
+
+if ! command -v openvpn &> /dev/null
+then
+  echo "Please install 'openvpn'"
+  exit 1
+fi
+
+if ! pacman -Q ca-certificates > /dev/null 
+then
+  echo "Please download 'ca-certificates'"
+  exit 1
+fi
+
+if ! pacman -Q ufw > /dev/null
+then
+  echo "Please download 'ufw'"
+  exit 1
+fi
+echo "Setup: validation complete"
+
+$CWD/sync
+
+sudo su << EOF
+echo "Setup: Disabling iptables"
+systemctl disable iptables.service
+systemctl disable ip6tables.service
+
+echo "Setup: Enabling ufw"
+systemctl enable ufw.service
+ufw enable
+
+echo "Setup: Configuring ufw"
+sed -i 's/^DEFAULT_FORWARD_POLICY=.*/DEFAULT_FORWARD_POLICY="ACCEPT"/g' /etc/default/ufw
+
+echo "Setup: Disabling IPv6"
+echo "
+# Nordvpn: Disable IPv6 
+net/ipv6/conf/all/disable_ipv6=1
+net/ipv6/conf/default/disable_ipv6=1
+net/ipv6/conf/tun0/disable_ipv6=1
+" >> /etc/ufw/sysctl.conf
+systemctl restart systemd-sysctl.service
+
+
+echo "Setup: Writing credentials to file"
+echo "$USERNAME
+$PASSWORD" > /etc/ssl/private/nordvpn.conf
+chmod 600 /etc/ssl/private/nordvpn.conf
+EOF
+
+echo "Setup: Finished :)"

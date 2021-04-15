@@ -1,0 +1,27 @@
+#!/bin/sh
+
+set -e
+
+FILE=$1
+DIR=/etc/openvpn/ovpn_tcp
+
+if [[ $FILE == "" ]]
+then
+  echo "No file given"
+  exit 1
+fi
+
+cd $DIR 
+OVPN_PATH=$DIR/$FILE
+
+AUTH="auth-user-pass /etc/ssl/private/nordvpn.conf"
+
+echo "Removing auth-user-pass"
+OVPN_CONFIG=$(sed "/^auth-user-pass/d" $OVPN_PATH)
+
+echo "Adding our own auth-user-pass to file"
+echo "$OVPN_CONFIG
+auth-user-pass /etc/ssl/private/nordvpn.conf" > $OVPN_PATH 
+
+
+openvpn $OVPN_PATH
