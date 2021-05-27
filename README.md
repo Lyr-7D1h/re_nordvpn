@@ -25,6 +25,7 @@ I like transparency so I'll try to enlist all changes happening to you system wh
 - Support udp files
 - See if other protocols are possible
 - Finish breakdown scripts
+- Different network interface name
 
 # Notes
 
